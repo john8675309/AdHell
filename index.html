@@ -1,0 +1,55 @@
+<html>
+<head>
+  <title>AdHell</title>
+</head>
+<body>
+  <div align="center"><video id="video" width="500" src="bb.mkv" controls autoplay></video></div>
+  <div align="center"><video id="you" autoplay></video></div>
+  <script src="jquery-3.5.1.min.js"></script>
+  <script src="face-api.min.js"></script>
+  <script>
+    var video = document.getElementById('you');
+    var advideo = document.getElementById("video");
+
+    $( document ).ready(function() {
+      run();
+    });
+    async function run() {
+      setInterval(function(){ checkFaces(); }, 1000);
+      // load the models
+      await faceapi.loadMtcnnModel('/')
+      await faceapi.loadFaceRecognitionModel('/')
+
+      // try to access users webcam and stream the images
+      // to the video element
+      const videoEl = document.getElementById('you')
+      navigator.getUserMedia(
+        { video: {} },
+        stream => videoEl.srcObject = stream,
+        err => console.error(err)
+      )
+    }
+
+    async function checkFaces() {
+      const mtcnnForwardParams = {
+        // limiting the search space to larger faces for webcam detection
+        minFaceSize: 200
+      }
+      const mtcnnResults = await faceapi.mtcnn(document.getElementById('you'), mtcnnForwardParams);
+      //faceapi.drawDetection('overlay', mtcnnResults.map(res => res.faceDetection), { withScore: false })
+      if (mtcnnResults.length == 0) {
+        if (!advideo.paused) {
+          advideo.pause();
+        }
+      } else {
+        if (advideo.paused) {
+          advideo.play();
+        }
+      }
+      console.log(mtcnnResults.length);
+    }
+
+
+  </script>
+</body>
+</html>
